@@ -1,0 +1,55 @@
+Project: AI Marketing Analytics Dashboard
+
+Current Version Features:
+1. Interactive Data Display
+   - Main table with product information
+   - Clickable cells with category-specific details
+   - Product column: Shows search keywords when clicked
+   - Persona column: Shows detailed persona information when clicked
+   - Relevant Searches column: Shows actual GPT conversations when clicked
+
+2. Product Information
+   - Product images linked to Particle website
+   - Persona summaries
+   - Search volume ranges
+   - Competitor websites as clickable links
+   - Click metrics and conversion rates
+
+3. Visual Design
+   - Clean, modern interface with Tailwind CSS
+   - Responsive table layout
+   - Expandable rows for detailed information
+   - Professional typography and spacing
+
+4. Data Structure
+   - CSV-based data management
+   - Real-time data loading
+   - Auto-refresh every 5 minutes
+   - Support for multiple data sources (data.csv, extract_{product}.csv)
+
+5. Interactive Features
+   - Clickable product images linking to product pages
+   - Competitor website links in impressions column
+   - Expandable details sections
+   - Only one details section open at a time
+   - Category-specific content display based on clicked column
+
+6. Persona Information
+   - Demographic profiles
+   - Psychographic details
+   - User motivations
+   - Pain points
+
+7. Search Analytics
+   - Search volume ranges
+   - Competitor impressions
+   - Click-through data
+   - Conversion metrics
+
+8. GPT Search Integration
+   - Real conversation examples
+   - Location data
+   - Timestamp information
+   - Filtered by relevance (include = 'y')
+   - Bold formatting for user questions
+   - Spacing between conversations and timestamps 

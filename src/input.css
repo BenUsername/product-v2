@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.analytics-table th, .analytics-table td {
+    padding: 1rem;
+    text-align: left;
+}
+
+.product-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.logo {
+    width: 120px;
+    height: auto;
+}
+
+.details-row {
+    background-color: #f8fafc;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.details-row[hidden] {
+    display: none;
+}
+
+.keyword-chip {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin: 0.25rem;
+    background-color: #e2e8f0;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    color: #475569;
+    transition: all 0.2s ease;
+}
+
+.keyword-chip:hover {
+    background-color: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+.expandable {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.expandable:hover {
+    background-color: #f1f5f9;
+} 

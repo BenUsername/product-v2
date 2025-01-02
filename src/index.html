@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Marketing Analytics Dashboard</title>
+    <link href="../dist/output.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip-thumbnail {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            width: 300px;
+            display: none;
+            margin-bottom: 12px;
+        }
+
+        .tooltip-container:hover .tooltip-thumbnail {
+            display: block;
+        }
+
+        .tooltip-thumbnail img {
+            width: 100%;
+            max-height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .tooltip-thumbnail p {
+            color: rgb(71, 85, 105);
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .tooltip-thumbnail p:last-child {
+            margin-bottom: 0;
+        }
+
+        .tooltip-thumbnail::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 8px;
+            border-style: solid;
+            border-color: white transparent transparent transparent;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8 flex items-center justify-between">
+            <img src="img/logo.png" alt="Company Logo" class="logo">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">SEO for AI Responses</h1>
+                <p class="text-gray-600 mt-2">Make your products visible in AI-driven search</p>
+            </div>
+        </header>
+
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="overflow-x-auto">
+                <table class="analytics-table w-full">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="font-semibold">Product</th>
+                            <th class="font-semibold">Persona</th>
+                            <th class="font-semibold">Relevant Searches</th>
+                            <th class="font-semibold">Impressions</th>
+                            <th class="font-semibold">Clicks</th>
+                            <th class="font-semibold">Conversion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Data will be populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4 text-sm text-gray-400 flex items-center justify-end">
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.477.859h4z"/>
+                </svg>
+                Note: Data shown is from ChatGPT, which holds:  <a href="https://www.ctol.digital/news/latest-llm-market-share-mar-2024-chatgpt-leads-gemini-surges-and-claude-triples/#google_vignette" class="text-blue-500 hover:underline" target="_blank"> 80% of the LLM market share</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Keywords data
+        const productKeywords = {
+            'Skincare': [
+                'best skin care products for men',
+                'face cream for men',
+                'mens skin care',
+                'best way to get rid of under eye bags',
+                'treat eye bags',
+                'minimize dark circles under eyes',
+                "aging cream for men's face",
+                'rid of bags under eyes',
+                'skin treatment for men',
+                'reduce bags under eyes',
+                'how to get rid of eye bags',
+                'men facial cream',
+                'remove bags under your eyes',
+                'mens face products',
+                'anti aging cream',
+                'getting rid of dark circles under the eyes',
+                'night time face care',
+                'make your skin look younger',
+                'bags under eyes causes',
+                "men's face cream"
+            ],
+            'Cologne': [
+                'top colognes',
+                'men perfume',
+                'best fragrances men',
+                "best men's cologne",
+                "top men's perfume",
+                'best cologne for men',
+                'the best man cologne',
+                'best colones for men',
+                'cologne for men',
+                'best mens cologne 2024',
+                'best rated colognes',
+                'top mens fragrances',
+                'the best men perfume',
+                "1 men's fragrance",
+                'best mens cologne',
+                "top ranked men's cologne",
+                'best cologne for men',
+                "best overall men's cologne",
+                'men cologne',
+                "men's top 10 perfumes"
+            ],
+            'Shampoo': [
+                'best shampoo for thinning hair',
+                'best hair growth products',
+                'shampoo for men with thinning hair',
+                'best shampoo for hair growth',
+                'best hair thickening products',
+                'shampoo that promotes hair growth',
+                'shampoo that helps hair grow for men',
+                'best hair thickening shampoo',
+                'best shampoo for hair loss men',
+                'best shampoo for men',
+                'best shampoo for mens hair',
+                'best shampoo for hair loss for men',
+                'shampoo shampoo',
+                'hair growth products for men',
+                'best volume shampoo',
+                'shampoo for hair loss for men',
+                'a shampoo',
+                "best shampoo for men's hair",
+                'best shampoo and conditioner for men',
+                'hair products for men'
+            ]
+        };
+
+        // Personas data
+        const productPersonas = {
+            'Skincare': {
+                demographic: [
+                    "Middle-class man, age 50 and above",
+                    "Married, divorced, or single; may have grown children or none",
+                    "Steady income and financially responsible, but values smart spending"
+                ],
+                psychographic: [
+                    "Health-conscious but practical, values convenience over complexity",
+                    "Seeks to maintain a youthful appearance without drastic measures",
+                    "Skeptical about marketing claims and wary of gimmicks",
+                    "Wants results, not empty promises"
+                ],
+                motivations: [
+                    "Reclaiming confidence",
+                    "Feeling attractive and vibrant as they age",
+                    "Simplifying skincare routines with effective, multi-purpose solutions"
+                ],
+                painPoints: [
+                    "Overwhelmed by a saturated market filled with ineffective products",
+                    "Tired of lengthy routines and confusing regimens",
+                    "Distrustful of exaggerated claims made by skincare brands",
+                    "Concerned about investing in products that fail to deliver results"
+                ]
+            },
+            'Cologne': {
+                demographic: [
+                    "Middle-class man, age after 35-38 and above"
+                ],
+                psychographic: [
+                    "Adventurous and open to new experiences",
+                    "Interested in rediscovering passion, romance, and excitement",
+                    "Wants to feel confident and magnetic in social and romantic settings"
+                ],
+                motivations: [
+                    "Enhancing personal allure and charisma",
+                    "Feeling attractive and desirable during dates and outings",
+                    "Boosting self-esteem and leaving a lasting impression",
+                    "Searching for scents that enhance their image and attractiveness",
+                    "Frustrated with generic fragrances that lack uniqueness",
+                    "Looking for colognes that complement their active social life"
+                ],
+                painPoints: [
+                    "Overwhelmed by overly complex or outdated cologne options",
+                    "Struggles to find a scent that balances sophistication and masculinity",
+                    "Concerned about fragrances that fade too quickly or are overpowering"
+                ]
+            },
+            'Shampoo': {
+                demographic: [
+                    "Middle-class man, age after 35+"
+                ],
+                psychographic: [
+                    "Practical and health-conscious, prioritizing hair care and maintenance",
+                    "Concerned about thinning hair, hair loss, or dryness",
+                    "Prefers effective, no-fuss grooming products designed for men"
+                ],
+                motivations: [
+                    "Maintaining thick, healthy-looking hair to feel youthful and confident",
+                    "Seeking solutions to prevent or reduce hair thinning",
+                    "Simplifying grooming routines with high-performance products"
+                ],
+                painPoints: [
+                    "Frustrated with shampoos that overpromise and underdeliver, cheap and ruin their hair",
+                    "Confused by products with complicated instructions or ingredients",
+                    "Concerned about harsh chemicals that damage hair or scalp"
+                ]
+            }
+        };
+
+        // Function to format numbers with commas
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // Function to create keyword chips
+        function createKeywordChips(keywords) {
+            return keywords.map(keyword => 
+                `<span class="keyword-chip">${keyword}</span>`
+            ).join('');
+        }
+
+        // Function to create persona details section
+        function createPersonaDetails(product) {
+            const persona = productPersonas[product];
+            return `
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="text-md font-semibold text-gray-700 mb-2">Demographic Profile</h4>
+                        <ul class="list-disc pl-5 space-y-1 text-gray-600">
+                            ${persona.demographic.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-md font-semibold text-gray-700 mb-2">Psychographic Profile</h4>
+                        <ul class="list-disc pl-5 space-y-1 text-gray-600">
+                            ${persona.psychographic.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-md font-semibold text-gray-700 mb-2">Motivations</h4>
+                        <ul class="list-disc pl-5 space-y-1 text-gray-600">
+                            ${persona.motivations.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-md font-semibold text-gray-700 mb-2">Pain Points</h4>
+                        <ul class="list-disc pl-5 space-y-1 text-gray-600">
+                            ${persona.painPoints.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Function to create a table row from data
+        function createTableRow(data) {
+            const productUrls = {
+                'Cologne': 'https://www.particleformen.com/he/product/particle-gravite/',
+                'Skincare': 'https://www.particleformen.com/he/product/particle-face-cream/',
+                'Shampoo': 'https://www.particleformen.com/he/product/particle-hair-shampoo/'
+            };
+
+            const mainRow = `
+                <tr class="hover:bg-gray-50">
+                    <td class="clickable-cell" data-type="product" data-product="${data.product}">
+                        <div class="flex items-center space-x-4">
+                            <a href="${productUrls[data.product]}" target="_blank" class="hover:opacity-80 transition-opacity">
+                                <img src="${data.image}" alt="${data.product}" class="product-image">
+                            </a>
+                            <span class="font-medium">${data.product}</span>
+                        </div>
+                    </td>
+                    <td class="clickable-cell" data-type="persona" data-product="${data.product}">
+                        <span class="text-sm text-gray-600">${data.persona}</span>
+                    </td>
+                    <td class="clickable-cell" data-type="searches" data-product="${data.product}">
+                        <span class="text-lg font-semibold">${data.searches}</span>
+                    </td>
+                    <td>
+                        <div class="text-sm text-gray-600">
+                            ${data.impressions.split('|').map(site => `
+                                <div class="mb-1">
+                                    ${brandSources[site] ? `
+                                        <div class="tooltip-container clickable-cell" data-type="brand-source" data-product="${data.product}" data-brand="${site}">
+                                            <span class="hover:text-blue-600 transition-colors cursor-pointer">
+                                                ${site} (source)
+                                                <div class="tooltip-thumbnail">
+                                                    <img src="img/quora_mentions.png" alt="Quora" class="w-full mb-2">
+                                                    <div class="text-[14px] text-gray-600 flex items-center gap-1">
+                                                        Click to reveal the sources used by GPT →
+                                                    </div>
+                                                </div>
+                                            </span>
+                                        </div>
+                                    ` : `
+                                        <a href="https://${site}" 
+                                           target="_blank" 
+                                           class="hover:text-blue-600 transition-colors"
+                                           title="Visit website">
+                                            ${site}
+                                        </a>
+                                    `}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="text-lg font-semibold">${formatNumber(data.clicks)}</span>
+                    </td>
+                    <td>
+                        <div>
+                            <span class="text-lg font-semibold">${formatNumber(data.conversions)}</span>
+                            <span class="text-green-600 ml-2">(${data.conversion_rate})</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="details-row hidden" id="details-${data.product}">
+                    <td colspan="6" class="p-6">
+                        <div id="content-${data.product}" class="space-y-4">
+                            <!-- Content will be dynamically loaded here -->
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return mainRow;
+        }
+
+        // Function to show content based on clicked cell
+        function showContent(product, type, additionalData) {
+            const contentDiv = document.getElementById(`content-${product}`);
+            let content = '';
+
+            switch(type) {
+                case 'product':
+                    content = `
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold mb-2">Top Search Keywords</h3>
+                            <div class="flex flex-wrap gap-2">
+                                ${createKeywordChips(productKeywords[product])}
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'persona':
+                    content = `
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold mb-2">Persona Details</h3>
+                            ${createPersonaDetails(product)}
+                        </div>
+                    `;
+                    break;
+                case 'searches':
+                    content = `
+                        <div class="space-y-4">
+                            <h3 class="text-lg font-semibold mb-2">Recent GPT Searches</h3>
+                            <div id="searches-${product}" class="max-h-96 overflow-y-auto">
+                                <p class="text-gray-500">Loading searches...</p>
+                            </div>
+                        </div>
+                    `;
+                    loadProductSearches(product);
+                    break;
+                case 'brand-source':
+                    const brand = additionalData;
+                    content = `
+                        <div class="space-y-6 p-4">
+                            <div class="flex items-start gap-4 bg-blue-50 p-4 rounded-lg">
+                                <svg class="w-4 h-4 text-blue-600 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                </svg>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-2">AI Source Analysis</h3>
+                                    <p class="text-gray-600 mb-4">Here are the sources used by the AI bots to identify brands and some quick wins to make it easier for them to read your website:</p>
+                                    <ul class="space-y-3">
+                                        <li class="flex items-start gap-2">
+                                            <svg class="w-4 h-4 text-gray-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" stroke-width="2"/>
+                                            </svg>
+                                            <span>Increase your mentions by experts with high "Human Authority Score" on Quora and Reddit for threads such as <a href="${brandSources[brand]}" target="_blank" class="text-blue-600 hover:underline">this example</a></span>
+                                        </li>
+                                        <li class="flex items-start gap-2">
+                                            <svg class="w-4 h-4 text-gray-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" stroke-width="2"/>
+                                            </svg>
+                                            <span>Increase your mentions in specialised industry outlets (specific sources coming soon)</span>
+                                        </li>
+                                        <li class="flex items-start gap-2">
+                                            <svg class="w-4 h-4 text-gray-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" stroke-width="2"/>
+                                            </svg>
+                                            <span>Add tracking of your website to Bing Webmaster Tool</span>
+                                        </li>
+                                        <li class="flex items-start gap-2">
+                                            <svg class="w-4 h-4 text-gray-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" stroke-width="2"/>
+                                            </svg>
+                                            <span>Increase number of Citations, Statistics and Mentions in your website copy answering common prompts</span>
+                                        </li>
+                                        <li class="flex items-start gap-2">
+                                            <svg class="w-4 h-4 text-gray-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" stroke-width="2"/>
+                                            </svg>
+                                            <span>Optimise website copy for tokenisation: length, diversity of vocabulary, etc. (tokenability assessment tool coming soon)</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+
+            contentDiv.innerHTML = content;
+        }
+
+        // Update click handlers for expandable cells
+        function addClickHandlers() {
+            document.querySelectorAll('.clickable-cell').forEach(cell => {
+                cell.addEventListener('click', function() {
+                    const product = this.dataset.product;
+                    const type = this.dataset.type;
+                    const brand = this.dataset.brand;
+                    const detailsRow = document.getElementById(`details-${product}`);
+                    
+                    // Close any other open rows
+                    document.querySelectorAll('.details-row').forEach(row => {
+                        if (row !== detailsRow && !row.classList.contains('hidden')) {
+                            row.classList.add('hidden');
+                        }
+                    });
+
+                    // Toggle current row and update content
+                    if (detailsRow.classList.contains('hidden')) {
+                        showContent(product, type, brand);
+                    }
+                    detailsRow.classList.toggle('hidden');
+                });
+            });
+        }
+
+        // Update loadData function to add click handlers after populating table
+        async function loadData() {
+            try {
+                const response = await fetch('../data/data.csv');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const csvText = await response.text();
+                
+                Papa.parse(csvText, {
+                    header: true,
+                    dynamicTyping: true,
+                    complete: function(results) {
+                        const tableBody = document.getElementById('tableBody');
+                        if (results.data && results.data.length > 0) {
+                            tableBody.innerHTML = results.data
+                                .filter(row => row.product)
+                                .map(row => createTableRow(row))
+                                .join('');
+                            
+                            // Add click handlers after populating table
+                            addClickHandlers();
+                        } else {
+                            tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4">No data available</td></tr>';
+                        }
+                    },
+                    error: function(error) {
+                        console.error('Error parsing CSV:', error);
+                        const tableBody = document.getElementById('tableBody');
+                        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-red-600">Error loading data</td></tr>';
+                    }
+                });
+            } catch (error) {
+                console.error('Error fetching CSV:', error);
+                const tableBody = document.getElementById('tableBody');
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-red-600">Error loading data</td></tr>';
+            }
+        }
+
+        // Load data when the page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadBrandSources();
+            loadData();
+        });
+
+        // Reload data every 5 minutes to check for updates
+        setInterval(loadData, 300000);
+
+        async function loadProductSearches(product) {
+            try {
+                const filename = product.toLowerCase() === 'skincare' ? 
+                    'extract_skincare_include.csv' : 
+                    `extract_${product.toLowerCase()}.csv`;
+                const response = await fetch(`../data/${filename}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const csvText = await response.text();
+                
+                Papa.parse(csvText, {
+                    header: true,
+                    transformHeader: header => header.trim(),
+                    complete: function(results) {
+                        console.log('Parsed search data:', results.data); // Debug log
+                        const relevantSearches = results.data
+                            .filter(row => row && Object.keys(row).length > 0)
+                            .map(row => {
+                                const date = row.timestamp ? new Date(row.timestamp.trim()) : new Date();
+                                const formattedDate = !isNaN(date.getTime()) ? 
+                                    date.toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    }) : 'Invalid Date';
+                                const location = row.state && row.country ? 
+                                    `${row.state.trim()}, ${row.country.trim()}` : 
+                                    (row.country ? row.country.trim() : 'Unknown Location');
+                                
+                                // Get conversation text and ensure it's a string
+                                const conversationText = row['conversation'] || 'No conversation text available';
+                                const formattedConversation = conversationText
+                                    .split('\n')
+                                    .map(line => {
+                                        if (line.toLowerCase().startsWith('user:')) {
+                                            return `<div class="font-bold text-gray-800 mb-2">${line}</div>`;
+                                        }
+                                        if (line.toLowerCase().startsWith('assistant:')) {
+                                            return `<div class="font-medium text-gray-700 mb-2">${line}</div>`;
+                                        }
+                                        return `<div class="mb-2">${line}</div>`;
+                                    })
+                                    .join('');
+                                
+                                return `
+                                    <div class="bg-white rounded-lg shadow p-4 mb-8">
+                                        <div class="text-gray-800 text-sm leading-relaxed mb-4 whitespace-pre-wrap">
+                                            ${formattedConversation}
+                                        </div>
+                                        <div class="flex justify-between items-start border-t pt-3 mt-4">
+                                            <span class="text-sm text-gray-600">${formattedDate}</span>
+                                            <span class="text-sm text-gray-500">${location}</span>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                        
+                        const searchesContainer = document.getElementById(`searches-${product}`);
+                        if (searchesContainer) {
+                            if (relevantSearches && relevantSearches.length > 0) {
+                                searchesContainer.innerHTML = relevantSearches.join('');
+                            } else {
+                                searchesContainer.innerHTML = '<p class="text-gray-500">No relevant searches found</p>';
+                            }
+                        }
+                    },
+                    error: function(error) {
+                        console.error('Error parsing CSV:', error);
+                        const searchesContainer = document.getElementById(`searches-${product}`);
+                        if (searchesContainer) {
+                            searchesContainer.innerHTML = '<p class="text-red-500">Error parsing search data</p>';
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading searches:', error);
+                const searchesContainer = document.getElementById(`searches-${product}`);
+                if (searchesContainer) {
+                    searchesContainer.innerHTML = '<p class="text-red-500">Error loading search examples</p>';
+                }
+            }
+        }
+
+        // Add this after other data structures
+        let brandSources = {};
+
+        // Add this function after other async functions
+        async function loadBrandSources() {
+            try {
+                const response = await fetch('../data/brand_sources.csv');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const csvText = await response.text();
+                
+                Papa.parse(csvText, {
+                    header: true,
+                    complete: function(results) {
+                        results.data.forEach(row => {
+                            if (row.brand_url && row.source_url) {
+                                brandSources[row.brand_url] = row.source_url;
+                            }
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading brand sources:', error);
+            }
+        }
+    </script>
+</body>
+</html> 
+</html> 
