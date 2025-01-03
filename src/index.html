@@ -522,9 +522,7 @@
 
         async function loadProductSearches(product) {
             try {
-                const filename = product.toLowerCase() === 'skincare' ? 
-                    'extract_skincare_include.csv' : 
-                    `extract_${product.toLowerCase()}.csv`;
+                const filename = `extract_${product.toLowerCase()}_include.csv`;
                 const response = await fetch(`../data/${filename}`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
